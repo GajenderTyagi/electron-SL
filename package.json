@@ -1,0 +1,23 @@
+{
+  "name": "main.js",
+  "version": "1.0.0",
+  "description": "Shopping List electron App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GajenderTyagi/electron-SL.git"
+  },
+  "keywords": [
+    "electron"
+  ],
+  "author": "GajenderTyagi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GajenderTyagi/electron-SL/issues"
+  },
+  "homepage": "https://github.com/GajenderTyagi/electron-SL#readme"
+}
