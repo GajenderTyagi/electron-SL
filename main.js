@@ -1,118 +1,111 @@
 const electron = require('electron');
-const url = require('url');
 const path = require('path');
+const url = require('url');
 
-const {app, BrowserWindow, Menu, ipcMain } = electron;
+// SET ENV
+process.env.NODE_ENV = 'development';
+
+const {app, BrowserWindow, Menu, ipcMain} = electron;
 
 let mainWindow;
 let addWindow;
 
 // Listen for app to be ready
 app.on('ready', function(){
+  // Create new window
+  mainWindow = new BrowserWindow({});
+  // Load html in window
+  mainWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'mainWindow.html'),
+    protocol: 'file:',
+    slashes:true
+  }));
+  // Quit app when closed
+  mainWindow.on('closed', function(){
+    app.quit();
+  });
 
-    // create new window
-    mainWindow = new BrowserWindow({});
-    // load html file in window
-    mainWindow.loadURL(url.format({
-        pathname : path.join(__dirname, 'mainWindow.html'),
-        protocol:'file:',
-        slashes: true
-
-    }));
-    // Quit app when closed 
-    mainWindow.on('close', function(){
-        app.quit();
-    })
-
-    // Build menu from template
-    const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-    // Insert menu
-    Menu.setApplicationMenu(mainMenu);
-
+  // Build menu from template
+  const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+  // Insert menu
+  Menu.setApplicationMenu(mainMenu);
 });
 
-//Handle craete Add window 
-function craeteAddWindow(){
-    // create new window
-    addWindow = new BrowserWindow({
-        width: 300,
-        height:200,
-        title:'List whatever you want'
-    });
-    // load html file in window
-    addWindow.loadURL(url.format({
-        pathname : path.join(__dirname, 'addWindow.html'),
-        protocol:'file:',
-        slashes: true
-
-    }));
-    // Garbage collection handle 
-    addWindow.on('close', function(){
-        addWindow= null ; 
-    });
+// Handle add item window
+function createAddWindow(){
+  addWindow = new BrowserWindow({
+    width: 300,
+    height:200,
+    title:'Add Shopping List Item'
+  });
+  addWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'addWindow.html'),
+    protocol: 'file:',
+    slashes:true
+  }));
+  // Handle garbage collection
+  addWindow.on('close', function(){
+    addWindow = null;
+  });
 }
 
-// catch item:add
+// Catch item:add
 ipcMain.on('item:add', function(e, item){
-    console.log(item);
-    mainWindow.webContents.send('item:add', item);
-    addWindow.close();
-
+  mainWindow.webContents.send('item:add', item);
+  addWindow.close(); 
+  // Still have a reference to addWindow in memory. Need to reclaim memory (Grabage collection)
+  //addWindow = null;
 });
 
-// create menu template
-const mainMenuTemplate = [
-    {
-        label:'File',
-        submenu:[
-            {
-                label:'Add Item',
-                click(){
-                    craeteAddWindow();
-
-                    
-                }
-            },
-            {
-                label:'Clear Items',
-                click(){
-                    mainWindow.webContents.send('item:clear');
-                }
-            },
-            {
-                label:'Quit',
-                accelerator: process.platform == 'darwin' ? 'command+Q' :
-                 'Ctrl+Q',
-                click(){
-                    app.quit();
-                }
-            }
-        ]
-    }
+// Create menu template
+const mainMenuTemplate =  [
+  // Each object is a dropdown
+  {
+    label: 'File',
+    submenu:[
+      {
+        label:'Add Item',
+        click(){
+          createAddWindow();
+        }
+      },
+      {
+        label:'Clear Items',
+        click(){
+          mainWindow.webContents.send('item:clear');
+        }
+      },
+      {
+        label: 'Quit',
+        accelerator:process.platform == 'darwin' ? 'Command+Q' : 'Ctrl+Q',
+        click(){
+          app.quit();
+        }
+      }
+    ]
+  }
 ];
 
-//If mac, add empty object to menu 
-if(process.platform =='darwin'){
-    mainMenuTemplate.unshift({});
+// If OSX, add empty object to menu
+if(process.platform == 'darwin'){
+  mainMenuTemplate.unshift({});
 }
 
-// Add developer tools item if not in prod 
+// Add developer tools option if in dev
 if(process.env.NODE_ENV !== 'production'){
-    mainMenuTemplate.push({
-        label:'Developer Tools',
-        submenu:[
-            {
-                label: 'Toggle DevTools',
-                accelerator: process.platform == 'darwin' ? 'command+I' :
-                 'Ctrl+I',
-                click(item, focusedWindow){
-                    focusedWindow.toggleDevTools();
-
-                }
-            },
-            {
-                role: 'reload'
-            }
-        ]
-    })
+  mainMenuTemplate.push({
+    label: 'Developer Tools',
+    submenu:[
+      {
+        role: 'reload'
+      },
+      {
+        label: 'Toggle DevTools',
+        accelerator:process.platform == 'darwin' ? 'Command+I' : 'Ctrl+I',
+        click(item, focusedWindow){
+          focusedWindow.toggleDevTools();
+        }
+      }
+    ]
+  });
 }
