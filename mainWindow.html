@@ -1,13 +1,24 @@
 <!DOCTYPE html>
 <html lang="eng">
 <head>
-    <meta charset="UTF-80">
-    <meta name="viewport" content="width=device-width,
-    initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie-edge">
+
     <title>Listing</title>
 </head>
 <body>
     <h1>Listing</h1>
+
+    <script>
+        const electron = require('electron');
+        const {ipcRenderer} = electron; 
+        const ul = document.querySelector('ul');
+        
+        ipcRenderer.on('item:add', function(e, item){
+            const li = document.createElement('li');
+            const itemText = document.craeteTextNode(item);
+            li.appendChild(itemText);
+            ul.appendChild(li);
+
+        });
+    </script>
 </body>
 </html>
